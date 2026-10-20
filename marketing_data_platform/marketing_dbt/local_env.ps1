@@ -1,0 +1,6 @@
+    $env:DATABRICKS_HOST      = "dbc-3866cad6-e355.cloud.databricks.com"  
+    $env:DATABRICKS_HTTP_PATH = "/sql/1.0/warehouses/d2fc8526c56220d1"
+    $env:DATABRICKS_PAT_TOKEN = "dapi2318a55b245e3641b10fa220e4efa031"
+    $env:DEV_SCHEMA           = "dbt_gbenga"
+    $env:DBT_TARGET           = "dev"
+    $env:DBT_PROFILES_DIR     = "."

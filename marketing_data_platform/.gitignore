@@ -10,3 +10,4 @@ edr_target/
 *.duckdb
 marketing_dbt/elementary_report.html
 marketing_dbt/edr_target/
+    marketing_dbt/local_env.ps1
