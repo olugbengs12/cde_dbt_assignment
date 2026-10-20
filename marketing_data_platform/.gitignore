@@ -1,0 +1,12 @@
+.env
+.venv/
+venv/
+__pycache__/
+marketing_dbt/target/
+marketing_dbt/dbt_packages/
+marketing_dbt/logs/
+marketing_dbt/package-lock.yml
+edr_target/
+*.duckdb
+marketing_dbt/elementary_report.html
+marketing_dbt/edr_target/

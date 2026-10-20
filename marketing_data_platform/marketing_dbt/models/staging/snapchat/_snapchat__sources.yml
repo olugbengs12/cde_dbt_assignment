@@ -1,0 +1,26 @@
+version: 2
+
+sources:
+  - name: snapchat_ads
+    description: >
+      Raw Snapchat Ads exports, loaded as-is (all columns STRING) into the bronze layer by
+      setup/02_load_bronze.sql.
+    database: bronze_production
+    schema: cdc_staging
+    tables:
+      - name: ads_stats
+        identifier: snapchat_ads_stats
+        description: >
+          Daily performance per ad **per country** (one ad/day can have several rows: de, ch, at...).
+          The ad is identified by ad_detail_id, which joins to the ad history's ad_id.
+      - name: ads
+        identifier: snapchat_ads_ad_history_new_ad_names
+        description: Ad attributes and parent ad group, one row per ad.
+      - name: ad_groups
+        identifier: snapchat_ads_adgroup_history_new_ad_group_names
+        description: >
+          Ad group history. Contains several versions of some ad groups (same ad_group_id,
+          different ad_group_updated_at); staging keeps the latest.
+      - name: campaigns
+        identifier: snapchat_ads_campaign_history_new_campaign_names
+        description: Campaign names and the ad account they belong to.

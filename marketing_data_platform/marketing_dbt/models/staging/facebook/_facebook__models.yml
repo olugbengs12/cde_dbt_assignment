@@ -1,0 +1,60 @@
+version: 2
+
+models:
+  - name: stg_facebook__ad_stats
+    description: Cleaned daily Facebook ad performance. **Grain:** one row per ad per day.
+    data_tests:
+      - dbt_utils.unique_combination_of_columns:
+          arguments:
+            combination_of_columns: [ad_id, date_day]
+    columns:
+      - name: ad_id
+        description: Facebook ad identifier (kept as string; IDs are not numbers you do maths on).
+        data_tests:
+          - not_null
+          - relationships:
+              arguments:
+                to: ref('stg_facebook__ads')
+                field: ad_id
+      - name: date_day
+        description: Day the performance was delivered.
+        data_tests: [not_null]
+      - name: spend
+        description: Amount spent, in the account's currency (see stg_facebook__accounts.currency_code).
+        data_tests: [not_null]
+      - name: impressions
+        description: Times the ad was shown. Source 'null' converted to 0.
+      - name: clicks
+        description: Clicks on the ad. Source 'null' converted to 0.
+
+  - name: stg_facebook__ads
+    description: Facebook ads with their parent ad set, campaign and account. **Grain:** one row per ad.
+    columns:
+      - name: ad_id
+        data_tests: [unique, not_null]
+      - name: ad_status
+        data_tests:
+          - accepted_values:
+              arguments:
+                values: [active, paused, archived, deleted]
+
+  - name: stg_facebook__ad_groups
+    description: Facebook ad sets. **Grain:** one row per ad set.
+    columns:
+      - name: ad_group_id
+        data_tests: [unique, not_null]
+
+  - name: stg_facebook__campaigns
+    description: Facebook campaigns. **Grain:** one row per campaign.
+    columns:
+      - name: campaign_id
+        data_tests: [unique, not_null]
+
+  - name: stg_facebook__accounts
+    description: Facebook ad accounts and their reporting currency. **Grain:** one row per account.
+    columns:
+      - name: account_id
+        data_tests: [unique, not_null]
+      - name: currency_code
+        description: ISO currency of all spend in this account.
+        data_tests: [not_null]

@@ -1,0 +1,2 @@
+dbt-databricks>=1.10,<2.0
+elementary-data[databricks]==0.26.1

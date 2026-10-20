@@ -1,0 +1,113 @@
+version: 2
+
+models:
+  - name: fct_marketing_ads_daily
+    description: >
+      {{ doc('fct_marketing_ads_daily') }}
+    data_tests:
+      - dbt_utils.unique_combination_of_columns:
+          arguments:
+            combination_of_columns: [platform, ad_id, date_day]
+      - elementary.volume_anomalies:
+          config:
+            severity: warn
+      - elementary.schema_changes:
+          config:
+            severity: warn
+    columns:
+      - name: marketing_ad_daily_id
+        description: Primary key. Hash of platform, ad_id and date_day.
+        data_tests: [unique, not_null]
+      - name: date_day
+        description: Day the advertising was delivered.
+        data_tests: [not_null]
+      - name: platform
+        description: Advertising platform, lowercase.
+        data_tests:
+          - not_null
+          - accepted_values:
+              arguments:
+                values: [facebook, snapchat]
+      - name: account_id
+        description: Platform ad account identifier.
+        data_tests: [not_null]
+      - name: account_name
+        description: Ad account name. NULL for Snapchat (no account file provided).
+      - name: currency_code
+        description: "{{ doc('currency_code') }}"
+        data_tests:
+          - not_null
+          - accepted_values:
+              arguments:
+                values: [USD, EUR]
+      - name: campaign_id
+        description: Platform campaign identifier. Not null proves every stat row resolved to a campaign.
+        data_tests: [not_null]
+      - name: campaign_name
+        data_tests: [not_null]
+      - name: ad_group_id
+        description: Ad group (Facebook "ad set") identifier.
+      - name: ad_id
+        description: Platform ad identifier. Unique only within a platform.
+        data_tests: [not_null]
+      - name: spend
+        description: "{{ doc('spend') }}"
+        data_tests:
+          - not_null
+          - dbt_utils.accepted_range:
+              arguments:
+                min_value: 0
+      - name: impressions
+        description: "{{ doc('impressions') }}"
+        data_tests:
+          - not_null
+          - dbt_utils.accepted_range:
+              arguments:
+                min_value: 0
+      - name: clicks
+        description: "{{ doc('clicks') }}"
+        data_tests:
+          - not_null
+          - dbt_utils.accepted_range:
+              arguments:
+                min_value: 0
+      - name: dbt_loaded_at
+        description: When dbt last wrote this row.
+
+  - name: mart_marketing_campaign_daily
+    description: >
+      {{ doc('mart_marketing_campaign_daily') }}
+    data_tests:
+      - dbt_utils.unique_combination_of_columns:
+          arguments:
+            combination_of_columns: [platform, campaign_id, date_day]
+    columns:
+      - name: date_day
+        data_tests: [not_null]
+      - name: platform
+        description: facebook or snapchat.
+        data_tests: [not_null]
+      - name: currency_code
+        description: "{{ doc('currency_code') }}"
+        data_tests: [not_null]
+      - name: campaign_name
+        description: Campaign name as set in the ad platform.
+      - name: active_ads
+        description: Number of distinct ads that delivered for this campaign on this day.
+      - name: spend
+        description: "{{ doc('spend') }}"
+      - name: impressions
+        description: "{{ doc('impressions') }}"
+      - name: clicks
+        description: "{{ doc('clicks') }}"
+      - name: ctr
+        description: "{{ doc('ctr') }}"
+        data_tests:
+          - dbt_utils.accepted_range:
+              arguments:
+                min_value: 0
+                max_value: 1
+      - name: cpc
+        description: "{{ doc('cpc') }}"
+      - name: cpm
+        description: "{{ doc('cpm') }}"

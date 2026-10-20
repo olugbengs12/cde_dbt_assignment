@@ -1,0 +1,61 @@
+# No secrets in this file: everything sensitive comes from environment variables.
+#   dev        -> a developer, personal access token (PAT)
+#   ci         -> GitHub Actions on pull requests, service principal (OAuth M2M)
+#   production -> GitHub Actions on merge to main, service principal (OAuth M2M). Never a PAT.
+marketing_dbt:
+  target: "{{ env_var('DBT_TARGET', 'dev') }}"
+  outputs:
+    dev:
+      type: databricks
+      host: "{{ env_var('DATABRICKS_HOST') }}"
+      http_path: "{{ env_var('DATABRICKS_HTTP_PATH') }}"
+      token: "{{ env_var('DATABRICKS_PAT_TOKEN') }}"
+      catalog: development
+      schema: "{{ env_var('DEV_SCHEMA', 'dbt_dev') }}"
+      threads: 4
+
+    ci:
+      type: databricks
+      auth_type: oauth
+      client_id: "{{ env_var('DBX_CLIENT_ID') }}"
+      client_secret: "{{ env_var('DBX_CLIENT_SECRET') }}"
+      host: "{{ env_var('DATABRICKS_HOST') }}"
+      http_path: "{{ env_var('DATABRICKS_HTTP_PATH') }}"
+      catalog: ci_development
+      schema: "{{ env_var('DEV_SCHEMA', 'ci') }}"
+      threads: 4
+
+    production:
+      type: databricks
+      auth_type: oauth
+      client_id: "{{ env_var('DBX_CLIENT_ID') }}"
+      client_secret: "{{ env_var('DBX_CLIENT_SECRET') }}"
+      host: "{{ env_var('DATABRICKS_HOST') }}"
+      http_path: "{{ env_var('DATABRICKS_HTTP_PATH') }}"
+      catalog: gold_production
+      schema: marketing
+      threads: 4
+
+# Profile read by the Elementary CLI (edr) to build its report.
+# It must point at the schema where the Elementary package writes its tables.
+elementary:
+  target: "{{ env_var('DBT_TARGET', 'dev') }}"
+  outputs:
+    dev:
+      type: databricks
+      host: "{{ env_var('DATABRICKS_HOST') }}"
+      http_path: "{{ env_var('DATABRICKS_HTTP_PATH') }}"
+      token: "{{ env_var('DATABRICKS_PAT_TOKEN') }}"
+      catalog: development
+      schema: "{{ env_var('DEV_SCHEMA', 'dbt_dev') }}_elementary"
+      threads: 4
+    production:
+      type: databricks
+      auth_type: oauth
+      client_id: "{{ env_var('DBX_CLIENT_ID') }}"
+      client_secret: "{{ env_var('DBX_CLIENT_SECRET') }}"
+      host: "{{ env_var('DATABRICKS_HOST') }}"
+      http_path: "{{ env_var('DATABRICKS_HTTP_PATH') }}"
+      catalog: silver_production
+      schema: elementary
+      threads: 4

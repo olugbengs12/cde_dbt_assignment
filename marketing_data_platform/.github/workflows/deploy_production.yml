@@ -1,0 +1,62 @@
+# Production: runs after a PR is merged into main, on a daily schedule, or manually.
+# Authenticates with the Databricks service principal only (OAuth M2M), never a PAT.
+name: Deploy to Production
+
+on:
+  push:
+    branches: [main]
+  schedule:
+    - cron: "0 6 * * *"   # daily 06:00 UTC refresh
+  workflow_dispatch:
+
+concurrency:
+  group: production
+  cancel-in-progress: false
+
+jobs:
+  dbt-production:
+    runs-on: ubuntu-latest
+    defaults:
+      run:
+        working-directory: marketing_dbt
+    env:
+      DBT_TARGET: production
+      DBT_PROFILES_DIR: .
+      DATABRICKS_HOST: ${{ vars.DATABRICKS_HOST }}
+      DATABRICKS_HTTP_PATH: ${{ vars.DATABRICKS_HTTP_PATH }}
+      DBX_CLIENT_ID: ${{ secrets.DBX_CLIENT_ID }}
+      DBX_CLIENT_SECRET: ${{ secrets.DBX_CLIENT_SECRET }}
+    steps:
+      - uses: actions/checkout@v4
+
+      - uses: actions/setup-python@v5
+        with:
+          python-version: "3.12"
+          cache: pip
+          cache-dependency-path: marketing_dbt/requirements.txt
+
+      - name: Install dbt + Elementary
+        run: pip install -r requirements.txt
+
+      - name: Install dbt packages
+        run: dbt deps
+
+      - name: dbt build (production)
+        run: dbt build
+
+      - name: Generate static docs
+        if: always()
+        run: dbt docs generate --static
+
+      - name: Elementary report
+        if: always()
+        run: edr report --profiles-dir . --profile-target production --file-path elementary_report.html
+
+      - name: Upload docs and Elementary report
+        if: always()
+        uses: actions/upload-artifact@v4
+        with:
+          name: production-reports
+          path: |
+            marketing_dbt/target/static_index.html
+            marketing_dbt/elementary_report.html

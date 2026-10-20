@@ -1,0 +1,24 @@
+version: 2
+
+sources:
+  - name: facebook_ads
+    description: >
+      Raw Facebook Ads exports, loaded as-is (all columns STRING) into the bronze layer by
+      setup/02_load_bronze.sql. Nothing is cleaned here; all typing and cleaning happens in staging.
+    database: bronze_production
+    schema: cdc_staging
+    tables:
+      - name: ads_stats
+        description: Daily performance per ad. One row per ad_id per ad_date. Clicks/impressions may be the literal string 'null'.
+      - name: ads
+        identifier: new_ads_de_randomized
+        description: Ad (creative) attributes, one row per ad, with its parent ad set, campaign and account.
+      - name: ad_groups
+        identifier: new_adgroup_de_randomized
+        description: Ad set (Facebook's "ad group") names, one row per ad set.
+      - name: campaigns
+        identifier: new_campaign_de_randomized
+        description: Campaign names, one row per campaign.
+      - name: accounts
+        identifier: new_acccount_de_randomized
+        description: Ad accounts. Carries the currency every Facebook spend value is reported in.

@@ -1,0 +1,40 @@
+name: marketing_dbt
+version: "1.0.0"
+profile: marketing_dbt
+
+model-paths: ["models"]
+macro-paths: ["macros"]
+test-paths: ["tests"]
+clean-targets: ["target", "dbt_packages"]
+
+vars:
+  # Ad platforms restate recent days (late clicks, billing corrections).
+  # Each incremental run re-processes this many trailing days.
+  lookback_days: 3
+
+# Catalog routing:
+#   production -> raw in bronze_production, transformations in silver_production,
+#                 consumption models in gold_production
+#   dev / ci   -> everything in the target's own catalog + schema (see macros/generate_schema_name.sql)
+models:
+  marketing_dbt:
+    staging:
+      +materialized: view
+      +database: "{{ 'silver_production' if target.name == 'production' else target.database }}"
+      +schema: staging
+    intermediate:
+      +materialized: ephemeral
+      +database: "{{ 'silver_production' if target.name == 'production' else target.database }}"
+      +schema: intermediate
+    marts:
+      +materialized: table
+      +database: "{{ 'gold_production' if target.name == 'production' else target.database }}"
+      +schema: marketing
+
+  elementary:
+    +database: "{{ 'silver_production' if target.name == 'production' else target.database }}"
+    +schema: elementary
+
+data_tests:
+  marketing_dbt:
+    +severity: error

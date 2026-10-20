@@ -1,0 +1,18 @@
+version: 2
+
+models:
+  - name: int_facebook__ads_daily
+    description: Facebook daily ad stats joined to ad set, campaign and account. **Grain:** ad x day. Ephemeral.
+
+  - name: int_snapchat__ads_daily
+    description: >
+      Snapchat daily ad stats, rolled up from ad x day x country to ad x day, joined to ad group and
+      campaign. **Grain:** ad x day. Ephemeral.
+
+  - name: int_marketing_ads
+    description: >
+      Facebook and Snapchat in one common column structure. **Grain:** one row per platform, ad and day.
+    columns:
+      - name: marketing_ad_daily_id
+        description: Surrogate key = hash(platform, ad_id, date_day).
+        data_tests: [unique, not_null]
